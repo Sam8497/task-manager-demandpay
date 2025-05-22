@@ -1,35 +1,94 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import React, { useState } from 'react';
+import Header from './components/Header';
+import TaskForm from './components/TaskForm';
+import TaskList from './components/TaskList';
+import TaskFilter from './components/TaskFilter';
+import { useTasks } from './hooks/useTasks';
+import type { Task } from './types/Task';
+
+// Add custom animations to Tailwind
+import './index.css';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const { 
+    tasks, 
+    filter, 
+    setFilter, 
+    addTask, 
+    updateTask, 
+    toggleTaskCompletion, 
+    deleteTask 
+  } = useTasks();
+  
+  const [showForm, setShowForm] = useState(false);
+  const [editingTask, setEditingTask] = useState<Task | null>(null);
+
+  const handleAddTask = () => {
+    setEditingTask(null);
+    setShowForm(true);
+  };
+
+  const handleEditTask = (task: Task) => {
+    setEditingTask(task);
+    setShowForm(true);
+  };
+
+  const handleCancelForm = () => {
+    setShowForm(false);
+    setEditingTask(null);
+  };
+
+  const handleSubmitForm = (taskData: Omit<Task, 'id' | 'createdAt'>) => {
+    if (editingTask) {
+      updateTask({
+        ...editingTask,
+        ...taskData
+      });
+      setEditingTask(null);
+    } else {
+      addTask(taskData);
+    }
+    setShowForm(false);
+  };
+
+  // Count tasks for each filter category
+  const taskCounts = {
+    all: tasks.length,
+    completed: tasks.filter(task => task.completed).length,
+    pending: tasks.filter(task => !task.completed).length
+  };
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-3xl mx-auto">
+        <Header onAddTask={handleAddTask} />
+        
+        <main className="px-4 pb-10">
+          {showForm && (
+            <TaskForm
+              onSubmit={handleSubmitForm}
+              onCancel={handleCancelForm}
+              initialTask={editingTask || undefined}
+              isEditing={!!editingTask}
+            />
+          )}
+          
+          <TaskFilter
+            currentFilter={filter}
+            onFilterChange={setFilter}
+            taskCounts={taskCounts}
+          />
+          
+          <TaskList
+            tasks={tasks}
+            onToggleComplete={toggleTaskCompletion}
+            onDelete={deleteTask}
+            onEdit={handleEditTask}
+          />
+        </main>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </div>
+  );
 }
 
-export default App
+export default App;

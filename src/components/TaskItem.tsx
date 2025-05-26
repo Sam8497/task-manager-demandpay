@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import type { Task, Priority } from '../types/Task';
+import type { Task } from '../types/Task';
 import { Check, Trash, Edit, Calendar, Flag } from 'lucide-react';
 import { formatDate } from '../utils/formatDate';
 
